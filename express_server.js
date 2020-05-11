@@ -5,16 +5,16 @@ const PORT = 8080;
 app.set('view engine', 'ejs');
 
 const urlDatabase = {
-    'b2xVn2': 'http://www.lighthouselabs.ca',
-    '9sm5xK': 'http://www.google.com',
+    'lighthouse': 'http://www.lighthouselabs.ca',
+    'google': 'http://www.google.com',
 };
 
 app.get('/', (req,res) => {
     res.send('Hello!')
 })
 
-app.get('urls', (req, res) => {
-    let templateVars = { urls: urlsDatabase }
+app.get('/urls', (req, res) => {
+    let templateVars = { urls: urlDatabase }
     res.render('urls_index', templateVars);
 });
 
