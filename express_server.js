@@ -31,7 +31,11 @@ app.get('/urls/new', (req, res) => {
 })
 
 app.post("/urls", (req, res) => {
-    console.log(req.body);   
+    const keyArray = Object.keys(req.body)
+    for(let key of keyArray){
+        urlDatabase[key] = req.body[key]
+    }
+    console.log(urlDatabase)
     res.send('OK');          
   });
 
