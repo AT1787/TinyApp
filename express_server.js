@@ -1,16 +1,16 @@
 const bodyParser = require("body-parser");
+const morgan = require('morgan')
 const express = require('express')
 const app = express();
 const PORT = 8080;
 
+app.use(morgan('dev'))
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 
 function generateRandomString() {
-    return Math.floor(Math.random() * 1000000)
+    return Math.random().toString(36).replace('0.', '').substr(0, 6)
 }
-
-
 
 const urlDatabase = {
     'b2xVn2': 'http://www.lighthouselabs.ca',
@@ -33,6 +33,7 @@ app.get('/urls/new', (req, res) => {
 app.post("/urls", (req, res) => {
     const keyArray = Object.keys(req.body)
     const uniqueID = generateRandomString()
+    console.log(urlDatabase)
     for(let key of keyArray){
         urlDatabase[uniqueID] = req.body[key]
     }
@@ -63,6 +64,11 @@ app.get("/u/:shortURL", (req, res) => {
     res.redirect(longURL);
   });
 
+app.post('/urls/:id', (req, res) => {
+    const responseKey = Object.keys(req.body)
+    urlDatabase[responseKey[0]] = req.body[responseKey[0]]
+    res.redirect('/urls')
+ });
 
 app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`)
