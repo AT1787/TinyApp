@@ -1,4 +1,5 @@
 const bodyParser = require("body-parser");
+const cookieParser = require('cookie-parser')
 const morgan = require('morgan')
 const express = require('express')
 const app = express();
@@ -37,11 +38,13 @@ app.post("/urls", (req, res) => {
     for(let key of keyArray){
         urlDatabase[uniqueID] = req.body[key]
     }
+    console.log(urlDatabase)
     res.redirect(`/urls/${uniqueID}`)
 })
 
 app.get('/urls/:shortURL', (req, res) => {
     let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+    console.log(urlDatabase)
     res.render('urls_show', templateVars);
 })
 
@@ -60,15 +63,20 @@ app.get('/hello', (req, res) => {
 })
 
 app.get("/u/:shortURL", (req, res) => {
-    const longURL = urlDatabase[req.params.shortURL]
-    res.redirect(longURL);
+    res.redirect(urlDatabase[req.params.shortURL])
   });
 
 app.post('/urls/:id', (req, res) => {
+    console.log(req.body)
     const responseKey = Object.keys(req.body)
     urlDatabase[responseKey[0]] = req.body[responseKey[0]]
     res.redirect('/urls')
  });
+
+ app.post('/login', (req, res) => {
+     res.cookie('username',req.body)
+     res.redirect('/urls')
+ })
 
 app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`)
