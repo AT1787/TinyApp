@@ -13,7 +13,7 @@
       <div>
         <% if (username) { %>
           <form action='/logout' method='POST'>
-            <p style='float: left; margin-right: 50px; font-size: 17px; color: white'>Logged in as: <%= username %></p>
+            <p style='float: left; margin-right: 50px; font-size: 17px; color: white'>Logged in as: <%= username['email'] %></p>
             <button type="submit" style='float: right; margin-top: -5px; border: 2px solid white;border-radius: 6px; background-color: transparent;color: white'>Logout</button></p>
           </form>
           <% } else { %>
