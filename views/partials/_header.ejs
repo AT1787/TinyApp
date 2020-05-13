@@ -13,14 +13,15 @@
       <div>
         <% if (username) { %>
           <form action='/logout' method='POST'>
-            <p style='float: left; margin-right: 50px; font-size: 17px; color: white'>Logged in as: <%= username['email'] %></p>
-            <button type="submit" style='float: right; margin-top: -5px; border: 2px solid white;border-radius: 6px; background-color: transparent;color: white'>Logout</button></p>
+            <p style='float: left; margin-right: 50px; margin-top: 3px; font-size: 17px; color: white'>Logged in as: <%= username['email'] %></p>
+            <button type="submit" style='float: right;  border: 2px solid white;border-radius: 6px; background-color: transparent;color: white'>Logout</button>
           </form>
           <% } else { %>
-      <form action='/login' method='POST'>
-        <input type="text" name="cookieInput" placeholder="Username" style="width: 300px; float: left; margin-right: 50px; margin-top: -5px">
-        <button type="submit" style='float: right; margin-top: -5px; border: 2px solid white;border-radius: 6px; background-color: transparent;color: white'>Submit</button></p>
-      </form> 
+            <button type="submit" style='float: left; margin-right: 25px; border: 2px solid white;border-radius: 6px; background-color: transparent; color: white;'>
+              <a style='text-decoration: none;color: white;' href='/register'>Register</a></button>
+            <button type="submit" style='float: right; border: 2px solid white;border-radius: 6px; background-color: transparent;color: white'>
+              <a style='text-decoration: none;color: white;'href='/login'>Login</a>
+            </button>
       <% } %>
       </div>
     </nav>

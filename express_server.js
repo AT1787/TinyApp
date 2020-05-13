@@ -34,12 +34,34 @@ const urlDatabase = {
     'google': 'http://www.google.com',
 };
 
+
+
 // functions
 
 const generateRandomString = () => {
     return Math.random().toString(36).replace('0.', '').substr(0, 6)
 }
 
+const emailLookup = (email, database) => {
+    for (let userAccount in database) {
+        if (database[userAccount]['email'] === email) {
+            return userAccount
+        }
+    }
+}
+
+const loginChecker = (email, password) => {
+    if (emailLookup(email, users)) {
+        let userAccount = emailLookup(email, users)
+        if(users[userAccount]['password'] === password) {
+            return true
+        } else {
+            return 'WrongP'
+        }
+    } else if (!emailLookup(email, users)) {
+        return 'NoEmail'
+    }
+}
 
 // routes
 
@@ -95,11 +117,23 @@ app.post('/urls/:id', (req, res) => {
     res.redirect('/urls')
  });
 
- app.post('/login', (req, res) => {
-     res.cookie('username',req.body['cookieInput'])
-     username = req.cookies['username']
-     res.redirect('/urls')
- })
+app.get('/login', (req, res) => {
+    res.render('loginPage')
+})
+
+ app.post('/login', (req, res, next) => {
+     const { email, password } = req.body
+     if (loginChecker(email, password) === 'NoEmail') {
+         res.status(403)
+         next('No email exists')
+     } else if(loginChecker(email, password) === 'WrongP') {
+         res.status(403)
+         next('Password Incorrect')
+     } else {
+         res.cookie('user_id', emailLookup(email, users)) 
+         res.redirect('/urls')
+     }
+     })
 
  app.post('/logout', (req, res) => {
      res.clearCookie('user_id')
@@ -107,18 +141,34 @@ app.post('/urls/:id', (req, res) => {
  })
 
  app.get('/register', (req, res) => {
-     res.render('loginPage')
+     res.render('registrationPage')
  })
 
- app.post('/register', (req, res) => {
+ app.post('/register', (req, res, next) => {
      const { email, password } = req.body
+       if (email === '' || password === '') {
+        res.status(400)
+        next('No user name or password exists')
+       } else if (emailLookup(email, users)) {
+        res.status(400)
+        next('Email already exists')
+       } else {
      const id = generateRandomString()
      res.cookie('user_id', id )
      users[id] = { id, email, password }
-     console.log(users)
      res.redirect('/urls')
+       }
  })
 
 app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`)
 })
+
+/*
+A user can register
+A user cannot register with an email address that has already been used
+A user can log in with a correct email/password
+A user sees the correct information in the header
+A user cannot log in with an incorrect email/password
+A user can log out
+*/
