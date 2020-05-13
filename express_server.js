@@ -30,11 +30,9 @@ const users = {
 }
 
 const urlDatabase = {
-    'b2xVn2': 'http://www.lighthouselabs.ca',
-    'google': 'http://www.google.com',
-};
-
-
+    b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+    i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+  };
 
 // functions
 
@@ -63,6 +61,16 @@ const loginChecker = (email, password) => {
     }
 }
 
+const urlsForUser = (id, database) => {
+    const newObject = {}
+    for (let key in database) {
+        if (id === database[key]['userID']) {
+            newObject[key] = database[key]
+        }
+    }
+    return newObject
+}
+
 // routes
 
 app.get('/', (req,res) => {
@@ -70,51 +78,63 @@ app.get('/', (req,res) => {
 })
 
 app.get('/urls', (req, res) => {
-    let templateVars = { urls: urlDatabase, username: users[req.cookies['user_id']]}
+    const userURLS = urlsForUser(req.cookies['user_id'], urlDatabase)
+    console.log(userURLS)
+    let templateVars = { urls: userURLS, username: users[req.cookies['user_id']]}
     res.render('urls_index', templateVars);
 });
 
 app.get('/urls/new', (req, res) => {
+    if (!req.cookies['user_id']) {
+        res.redirect('/login')
+    }
+    console.log(urlDatabase)
     let templateVars = { username: users[req.cookies['user_id']] }
     res.render('urls_new', templateVars)
 })
 
 app.post("/urls", (req, res) => {
+
     const keyArray = Object.keys(req.body)
     const uniqueID = generateRandomString()
     for(let key of keyArray){
-        urlDatabase[uniqueID] = req.body[key]
+        urlDatabase[uniqueID] = { longURL: req.body[key], userID: req.cookies['user_id']}
     }
     res.redirect(`/urls/${uniqueID}`)
 })
 
 app.get('/urls/:shortURL', (req, res) => {
-    let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: users[req.cookies['user_id']]};
+    let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]['longURL'], username: users[req.cookies['user_id']]};
     res.render('urls_show', templateVars);
 })
 
 app.post('/urls/:shortURL/delete', (req, res) => {
-    delete urlDatabase[req.params.shortURL]
-    console.log(urlDatabase)
-    res.redirect('/urls')
+    if(urlDatabase[req.params.shortURL]['userID'] === req.cookies['user_id']) {
+      delete urlDatabase[req.params.shortURL] 
+      res.redirect('/urls')
+    } else {
+      res.status(403)
+      res.send('You do not have access')
+    }
 })
 
 app.get('/urls.json', (req, res) => {
     res.json(urlDatabase);
 })
 
-app.get('/hello', (req, res) => {
-    res.send('<html><body>Hello <b>World</b></body></html>\n'); 
-})
-
 app.get("/u/:shortURL", (req, res) => {
-    res.redirect(urlDatabase[req.params.shortURL])
+    res.redirect(urlDatabase[req.params.shortURL]['longURL'])
   });
 
 app.post('/urls/:id', (req, res) => {
     const responseKey = Object.keys(req.body)
-    urlDatabase[responseKey[0]] = req.body[responseKey[0]]
-    res.redirect('/urls')
+    if (urlDatabase[responseKey[0]]['userID'] === req.cookies['user_id']) {
+      urlDatabase[responseKey[0]]['longURL'] = req.body[responseKey[0]]
+      res.redirect('/urls') 
+    } else {
+      res.status(403)
+      res.send('You do not have access')
+    }
  });
 
 app.get('/login', (req, res) => {
@@ -164,11 +184,3 @@ app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`)
 })
 
-/*
-A user can register
-A user cannot register with an email address that has already been used
-A user can log in with a correct email/password
-A user sees the correct information in the header
-A user cannot log in with an incorrect email/password
-A user can log out
-*/
