@@ -89,6 +89,10 @@ app.post('/urls/:id', (req, res) => {
      res.redirect('/urls')  
  })
 
+ app.get('/register', (req, res) => {
+     res.render('loginPage')
+ })
+
 app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`)
 })
