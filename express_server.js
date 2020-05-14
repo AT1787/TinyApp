@@ -5,6 +5,7 @@ const cookieSession = require('cookie-session')
 const morgan = require('morgan')
 const bcrypt = require('bcrypt');
 const express = require('express')
+const methodOverride = require('method-override')
 const app = express();
 const PORT = 8080;
 
@@ -17,6 +18,7 @@ app.use(cookieSession({
     name: 'session',
     keys: ['f77888e3-fad9-4e89-b8b7-1cff127f37aa', 'e6337385-acd1-43b5-aa6a-73090c8ce23f']
   }))
+app.use(methodOverride('_method'))
 
 // Database/Objects
 
@@ -49,9 +51,15 @@ app.get('/', (req, res) => {
 })
 
 app.get('/urls', (req, res) => {
+    if (!req.session.user_id) {
+        res.status(403)
+        let templateVars = {username: null, errorMessage: `User not logged in.` }
+        res.render('errorPage', templateVars)
+    } else {
     const userURLS = urlsForUser(req.session.user_id, urlDatabase)
     let templateVars = { urls: userURLS, username: users[req.session.user_id]}
     res.render('urls_index', templateVars);
+    }
 });
 
 app.get('/urls/new', (req, res) => {
@@ -72,22 +80,28 @@ app.post("/urls", (req, res) => {
 })
 
 app.get('/urls/:id', (req, res) => {
-    if(urlDatabase[req.params.id]['userID'] === req.session.user_id) {
-    let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id]['longURL'], username: users[req.session.user_id]};
-    res.render('urls_show', templateVars);
+    if (!urlDatabase[req.params.id]) {
+        res.status(403)
+        let templateVars = {username: users[req.session.user_id], errorMessage: `URL not found.` }
+        res.render('errorPage', templateVars)
+    } else if (!req.session.user_id) {
+        res.status(403)
+        let templateVars = { username: null, errorMessage: `You don't have access.` }
+        res.render('errorPage', templateVars)
     } else {
-    res.status(403)
-    res.send('You do not have access')
-    }
+        let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id]['longURL'], username: users[req.session.user_id]};
+        res.render('urls_show', templateVars);
+   }
 })
 
-app.post('/urls/:id/delete', (req, res) => {
+app.delete('/urls/:id/delete', (req, res) => {
     if(urlDatabase[req.params.id]['userID'] === req.session.user_id) {
       delete urlDatabase[req.params.id] 
       res.redirect('/urls')
     } else {
       res.status(403)
-      res.send('You do not have access')
+      let templateVars = { username: null, errorMessage: `You don't have access.` }
+      res.render('errorPage', templateVars)
     }
 })
 
@@ -96,17 +110,24 @@ app.get('/urls.json', (req, res) => {
 })
 
 app.get("/u/:id", (req, res) => {
+    if (!urlDatabase[req.params.id]['longURL']) {
+        res.status(403)
+        let templateVars = {username: users[req.session.user_id], errorMessage: `URL not found.` }
+        res.render('errorPage', templateVars)
+    }
     res.redirect(urlDatabase[req.params.id]['longURL'])
   });
 
-app.post('/urls/:id', (req, res) => {
+app.put('/urls/:id', (req, res) => {
     const responseKey = Object.keys(req.body)
+    console.log(req.body)
     if (urlDatabase[responseKey[0]]['userID'] === req.session.user_id) {
       urlDatabase[responseKey[0]]['longURL'] = req.body[responseKey[0]]
       res.redirect('/urls') 
     } else {
       res.status(403)
-      res.send('You do not have access')
+      let templateVars = { username: null, errorMessage: `You don't have access.` }
+      res.render('errorPage', templateVars)
     }
  });
 
@@ -122,14 +143,15 @@ app.get('/login', (req, res) => {
          res.render('errorPage', templateVars)
      } else if(loginChecker(email, password, users) === 'WrongP') {
          res.status(403)
-         next('Password Incorrect')
+         let templateVars = { username: null, errorMessage: `Password is incorrect. Please try again.` }
+         res.render('errorPage', templateVars)
      } else {
          req.session.user_id = emailLookup(email, users)
          res.redirect('/urls')
      }
 })
-// Render error page 
- app.post('/logout', (req, res) => {
+
+app.post('/logout', (req, res) => {
      req.session = null
      res.redirect('/urls')  
  })
@@ -140,26 +162,20 @@ app.get('/login', (req, res) => {
 
  app.post('/register', (req, res, next) => {
      const { email, password } = req.body
-
-     // Check to see if user inputting an empty string for email and password, or email already exists. 
-
        if (email === '' || password === '') {
-        res.status(400)
-        next('No email or password exists')
+         res.status(403)
+         let templateVars = { username: null, errorMessage: `Email or password doesn't exist. Please try again.` }
+         res.render('errorPage', templateVars)
        } else if (emailLookup(email, users)) {
-        res.status(400)
-        next('Email already exists')
+         res.status(403)
+         let templateVars = { username: null, errorMessage: `Email already exists. Please login.` }
+         res.render('errorPage', templateVars)
        } else {
-
-    // Create User
-    
-     const id = generateRandomString()
-     const hashedPassword = bcrypt.hashSync(password, 10);
-
-     req.session.user_id = id
-     users[id] = { id, email, hashedPassword }
-
-     res.redirect('/urls')
+         const id = generateRandomString()
+         const hashedPassword = bcrypt.hashSync(password, 10);
+         req.session.user_id = id
+         users[id] = { id, email, hashedPassword }
+         res.redirect('/urls')
        }
  })
 

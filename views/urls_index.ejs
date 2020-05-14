@@ -31,7 +31,7 @@
                     <td><%= urls[url]['longURL'] %></td>
                     <td><form method="GET" action="/urls/<%= url %>"><button type="submit" style="background-color:white;color: blue;border: 2px solid blue;border-radius: 6px;">
                       Edit</button></form></td>
-                    <td><form method="POST" action="/urls/<%= url %>/delete"> 
+                    <td><form method="POST" action="/urls/<%= url %>/delete?_method=DELETE"> 
                         <button type="submit" style="background-color:white;color: red;border: 2px solid red;border-radius: 6px;">
                             Delete</button>
                     </form></td>
