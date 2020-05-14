@@ -40,6 +40,14 @@ const urlDatabase = {
 
 // Routes
 
+app.get('/', (req, res) => {
+    if (!req.session.user_id) {
+        res.redirect('/login')
+    } else {
+        res.redirect('/urls')
+    }
+})
+
 app.get('/urls', (req, res) => {
     const userURLS = urlsForUser(req.session.user_id, urlDatabase)
     let templateVars = { urls: userURLS, username: users[req.session.user_id]}
@@ -63,14 +71,19 @@ app.post("/urls", (req, res) => {
     res.redirect(`/urls/${uniqueID}`)
 })
 
-app.get('/urls/:shortURL', (req, res) => {
-    let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]['longURL'], username: users[req.session.user_id]};
+app.get('/urls/:id', (req, res) => {
+    if(urlDatabase[req.params.id]['userID'] === req.session.user_id) {
+    let templateVars = { shortURL: req.params.id, longURL: urlDatabase[req.params.id]['longURL'], username: users[req.session.user_id]};
     res.render('urls_show', templateVars);
+    } else {
+    res.status(403)
+    res.send('You do not have access')
+    }
 })
 
-app.post('/urls/:shortURL/delete', (req, res) => {
-    if(urlDatabase[req.params.shortURL]['userID'] === req.session.user_id) {
-      delete urlDatabase[req.params.shortURL] 
+app.post('/urls/:id/delete', (req, res) => {
+    if(urlDatabase[req.params.id]['userID'] === req.session.user_id) {
+      delete urlDatabase[req.params.id] 
       res.redirect('/urls')
     } else {
       res.status(403)
@@ -82,8 +95,8 @@ app.get('/urls.json', (req, res) => {
     res.json(urlDatabase);
 })
 
-app.get("/u/:shortURL", (req, res) => {
-    res.redirect(urlDatabase[req.params.shortURL]['longURL'])
+app.get("/u/:id", (req, res) => {
+    res.redirect(urlDatabase[req.params.id]['longURL'])
   });
 
 app.post('/urls/:id', (req, res) => {
@@ -105,7 +118,8 @@ app.get('/login', (req, res) => {
      const { email, password } = req.body
      if (loginChecker(email, password, users) === 'NoEmail') {
          res.status(403)
-         next('No email exists')
+         let templateVars = { username: null, errorMessage: `Email doesn't exist. Please register.` }
+         res.render('errorPage', templateVars)
      } else if(loginChecker(email, password, users) === 'WrongP') {
          res.status(403)
          next('Password Incorrect')
@@ -114,7 +128,7 @@ app.get('/login', (req, res) => {
          res.redirect('/urls')
      }
 })
-
+// Render error page 
  app.post('/logout', (req, res) => {
      req.session = null
      res.redirect('/urls')  
