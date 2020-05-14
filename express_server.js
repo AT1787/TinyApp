@@ -1,13 +1,14 @@
-//Requirements
+// Requirements & Port
 
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser')
 const morgan = require('morgan')
+const bcrypt = require('bcrypt');
 const express = require('express')
 const app = express();
 const PORT = 8080;
 
-// App.Use
+// Express.JS 
 
 app.use(cookieParser())
 app.use(morgan('dev'))
@@ -17,21 +18,21 @@ app.use(bodyParser.urlencoded({extended: true}));
 // Database/Objects
 
 const users = { 
-    "userRandomID": {
-      id: "userRandomID", 
+    "dummy1": {
+      id: "dummy1", 
       email: "user@example.com", 
-      password: "purple-monkey-dinosaur"
+      hashedPassword: "purple-monkey-dinosaur"
     },
-   "user2RandomID": {
-      id: "user2RandomID", 
+   "dummy2": {
+      id: "dummy2", 
       email: "user2@example.com", 
-      password: "dishwasher-funk"
+      hashedPassword: "dishwasher-funk"
     }
 }
 
 const urlDatabase = {
-    b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
-    i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+    test1: { longURL: "https://www.tsn.ca", userID: "dummy1" },
+    test2: { longURL: "https://www.google.ca", userID: "dummy2" }
   };
 
 // Functions
@@ -50,8 +51,8 @@ const emailLookup = (email, database) => {
 
 const loginChecker = (email, password) => {
     if (emailLookup(email, users)) {
-        let userAccount = emailLookup(email, users)
-        if(users[userAccount]['password'] === password) {
+        let userID = emailLookup(email, users)
+        if(bcrypt.compareSync(password, users[userID]['hashedPassword'])) {
             return true
         } else {
             return 'WrongP'
@@ -71,11 +72,10 @@ const urlsForUser = (id, database) => {
     return newObject
 }
 
-// routes
+// Routes
 
 app.get('/urls', (req, res) => {
     const userURLS = urlsForUser(req.cookies['user_id'], urlDatabase)
-    console.log(userURLS)
     let templateVars = { urls: userURLS, username: users[req.cookies['user_id']]}
     res.render('urls_index', templateVars);
 });
@@ -83,8 +83,7 @@ app.get('/urls', (req, res) => {
 app.get('/urls/new', (req, res) => {
     if (!req.cookies['user_id']) {
         res.redirect('/login')
-    }
-    console.log(urlDatabase)
+    } 
     let templateVars = { username: users[req.cookies['user_id']] }
     res.render('urls_new', templateVars)
 })
@@ -148,7 +147,7 @@ app.get('/login', (req, res) => {
          res.cookie('user_id', emailLookup(email, users)) 
          res.redirect('/urls')
      }
-     })
+})
 
  app.post('/logout', (req, res) => {
      res.clearCookie('user_id')
@@ -161,16 +160,25 @@ app.get('/login', (req, res) => {
 
  app.post('/register', (req, res, next) => {
      const { email, password } = req.body
+
+     // Check to see if user inputting an empty string for email and password, or email already exists. 
+
        if (email === '' || password === '') {
         res.status(400)
-        next('No user name or password exists')
+        next('No email or password exists')
        } else if (emailLookup(email, users)) {
         res.status(400)
         next('Email already exists')
        } else {
+
+    // Create User
+    
      const id = generateRandomString()
+     const hashedPassword = bcrypt.hashSync(password, 10);
+
      res.cookie('user_id', id )
-     users[id] = { id, email, password }
+     users[id] = { id, email, hashedPassword }
+     console.log(users)
      res.redirect('/urls')
        }
  })
