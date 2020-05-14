@@ -1,4 +1,4 @@
-//requirements
+//Requirements
 
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser')
@@ -7,14 +7,14 @@ const express = require('express')
 const app = express();
 const PORT = 8080;
 
-// app.usage
+// App.Use
 
 app.use(cookieParser())
 app.use(morgan('dev'))
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 
-// databases/objects
+// Database/Objects
 
 const users = { 
     "userRandomID": {
@@ -34,7 +34,7 @@ const urlDatabase = {
     i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
   };
 
-// functions
+// Functions
 
 const generateRandomString = () => {
     return Math.random().toString(36).replace('0.', '').substr(0, 6)
@@ -73,10 +73,6 @@ const urlsForUser = (id, database) => {
 
 // routes
 
-app.get('/', (req,res) => {
-    res.send('Hello!')
-})
-
 app.get('/urls', (req, res) => {
     const userURLS = urlsForUser(req.cookies['user_id'], urlDatabase)
     console.log(userURLS)
@@ -94,7 +90,6 @@ app.get('/urls/new', (req, res) => {
 })
 
 app.post("/urls", (req, res) => {
-
     const keyArray = Object.keys(req.body)
     const uniqueID = generateRandomString()
     for(let key of keyArray){
