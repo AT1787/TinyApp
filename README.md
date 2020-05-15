@@ -23,8 +23,20 @@ Some basic features include:
 
 ## Final Product Screenshots
 
-!["screenshot description"](#)
-!["screenshot description"](#)
+!["Screenshot of login page to TinyApp"](https://github.com/AT1787/tinyapp/blob/master/docs/loginPage.png?raw=true)  
+
+!["Main user home page"](https://github.com/AT1787/tinyapp/blob/master/docs/urlPage.png?raw=true)  
+
+!["Custom error page"](https://github.com/AT1787/tinyapp/blob/master/docs/errorPage.png?raw=true)  
+
+!["Edit page of existing short URLs"](https://github.com/AT1787/tinyapp/blob/master/docs/editPage.png?raw=true)  
+  
+Free of use duck images courtesy of:  
+https://www.pexels.com/photo/giant-yellow-rubber-ducky-on-body-of-water-at-park-2133193/  
+https://www.pexels.com/photo/yellow-duck-toy-beside-green-duck-toy-132464/ 
+
+
+
 
 ## Dependencies
 
@@ -34,6 +46,7 @@ Some basic features include:
 - bcrypt
 - body-parser
 - cookie-session
+- method-override
 
 
 ## Getting Started
