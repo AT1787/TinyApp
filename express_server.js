@@ -28,7 +28,7 @@ app.listen(PORT, () => {
 
 // Database/Objects
 
-const users = { };
+const users = {};
 const urlDatabase = {};
 
 
